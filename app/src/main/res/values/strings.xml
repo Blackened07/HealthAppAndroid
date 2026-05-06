@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">HealthAppFront</string>
+    <string name="welcome">Добро пожаловать!</string>
+    <string name="logo_description">Логотип приложения</string>
+    <string name="button_login">Войти</string>
+    <string name="button_registration">Зарегистрироваться</string>
+    <string name="hint_firstName">Введите имя</string>
+    <string name="hint_email">Введите почту</string>
+    <string name="hint_password">Введите пароль</string>
+    <string name="avatar">avatar</string>
+    <string name="createRecord">Создать запись</string>
+    <string name="delete_record">Удалить запись</string>
+    <string name="check_note">Посмотреть примечание</string>
+    <string name="update_record">Изменить запись</string>
+    <string name="user_name">Имя пользователя</string>
+    <string name="user_email">email@mail.ru</string>
+    <string name="records_by_date">Записи за :</string>
+    <string name="get_report">Создать отчёт</string>
+    <string-array name="account_role">
+        <item>Пользователь</item>
+        <item>Доктор</item>
+    </string-array>
+
+</resources>
