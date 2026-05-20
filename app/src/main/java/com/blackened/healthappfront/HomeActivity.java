@@ -18,6 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -51,7 +52,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class HomeActivity extends AppCompatActivity {
+public class HomeActivity extends BaseActivity {
 
     private Long userId;
     private String jwtToken;
@@ -63,8 +64,12 @@ public class HomeActivity extends AppCompatActivity {
 
     private Calendar calendar;
     private HealthRecordAdapter adapter;
+    private NavigationView nav;
+    private String today;
     private static final String ADD_RECORD = "Добавить запись";
     private static final String EDIT_RECORD = "Редактировать запись";
+
+    private static final String TITLE = "HealthApp";
 
     private String currentSelectedDate;
     private OnDateSelectedListener listener;
@@ -73,6 +78,8 @@ public class HomeActivity extends AppCompatActivity {
         void onDaySelected(String date);
     }
 
+
+
     @SuppressLint({"DefaultLocale", "MissingInflatedId"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,9 +87,12 @@ public class HomeActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home);
 
-        SharedPreferences preferences = getSharedPreferences("app_prefs", MODE_PRIVATE);
-        Long currentId = preferences.getLong("user_id", -1);
-        String jwtToken = preferences.getString("jwt_token", null);
+        setUpToolbar();
+        setToolbarTitle(TITLE);
+
+        preferences = getSharedPreferences(KeyWords.APP_PREFS.getWord(), MODE_PRIVATE);
+        Long currentId = preferences.getLong(KeyWords.USER_ID.getWord(), -1);
+        String jwtToken = preferences.getString(KeyWords.JWT_TOKEN.getWord(), null);
 
         if (jwtToken == null || currentId == -1) {
             startActivity(new Intent(this, MainActivity.class));
@@ -92,37 +102,41 @@ public class HomeActivity extends AppCompatActivity {
 
         this.userId = currentId;
         this.jwtToken = jwtToken;
+        initViews();
+        setupRecyclerView();
+        setupCalendar();
+        setupFabAdd();
+        setupNav();
 
+    }
+    @Override
+    protected void initViews() {
         recyclerView = findViewById(R.id.rv_health_records);
-        adapter = new HealthRecordAdapter();
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(adapter);
-
-
         calendarView = findViewById(R.id.calendar_view);
+        fabAdd = findViewById(R.id.fab_add);
+        nav = findViewById(R.id.nav_view);
+    }
+
+    @SuppressLint("DefaultLocale")
+    private void setupCalendar() {
         calendarView.setOnDateChangeListener(((view, year, month, dayOfMonth) -> {
             currentSelectedDate = year + "-" + String.format("%02d", (month + 1)) + "-" + String.format("%02d", dayOfMonth);
-            fetchSelfRecordsByDate(currentSelectedDate);
+            fetchSelfRecordsByDate(currentSelectedDate, userId);
         }));
 
         calendar = Calendar.getInstance();
-        @SuppressLint("DefaultLocale") String today = String.format("%d-%02d-%02d",
+        today = String.format("%d-%02d-%02d",
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH) + 1,
                 calendar.get(Calendar.DAY_OF_MONTH));
         currentSelectedDate = today;
-        fetchSelfRecordsByDate(today);
+        fetchSelfRecordsByDate(today, userId);
+    }
 
-
-        fabAdd = findViewById(R.id.fab_add);
-        fabAdd.setOnClickListener((v) -> {
-            if (currentSelectedDate.equals(today)) {
-                showAddRecordDialogue(ADD_RECORD, null);
-            } else {
-                Toast.makeText(this, String.format("Вы не можете сделать запись на: %s", currentSelectedDate), Toast.LENGTH_SHORT).show();
-            }
-        });
-
+    private void setupRecyclerView() {
+        adapter = new HealthRecordAdapter();
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
         adapter.setOnDeleteClickListener(this::confirmDelete); //для удаления тоже можно сделать просмотр даты
         adapter.setOnEditClickListener(r -> {
             if (currentSelectedDate.equals(today)) {
@@ -132,9 +146,19 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
         adapter.setOnNoteClickListener(this::viewNote);
+    }
 
+    private void setupFabAdd() {
+        fabAdd.setOnClickListener((v) -> {
+            if (currentSelectedDate.equals(today)) {
+                showAddRecordDialogue(ADD_RECORD, null);
+            } else {
+                Toast.makeText(this, String.format("Вы не можете сделать запись на: %s", currentSelectedDate), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
-        NavigationView nav = findViewById(R.id.nav_view);
+    private void setupNav() {
         nav.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
 
@@ -153,118 +177,7 @@ public class HomeActivity extends AppCompatActivity {
                 firstName,
                 userEmail
         );
-
-        report = findViewById(R.id.report);
-
-        report.setOnClickListener(V -> {
-            showReportDialog();
-        });
     }
-
-    private void showReportDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(50, 30, 50, 30);
-
-        Button fromDate = new Button(this);
-        Button toDate = new Button(this);
-        fromDate.setText("Выберите дату начала отчёта");
-        toDate.setText("Выберите дату окончания отчёта");
-
-        String[] selectedFrom = {null};
-        String[] selectedTo = {null};
-
-        fromDate.setOnClickListener(v -> {
-            showDatePicker(date -> {
-                selectedFrom[0] = date;
-                fromDate.setText(date);
-            });
-        });
-
-        toDate.setOnClickListener(v -> {
-            showDatePicker(date -> {
-                selectedTo[0] = date;
-                toDate.setText(date);
-            });
-        });
-
-        TextView types = new TextView(this);
-        types.setText("Выберите типы метрик");
-        types.setTextSize(16);
-        types.setPadding(0, 20, 0, 10);
-
-        List<String> selectedTypes = new ArrayList<>();
-
-        LinearLayout checkboxesLayout = new LinearLayout(this);
-        checkboxesLayout.setOrientation(LinearLayout.VERTICAL);
-
-        for (MetricTypes metric : MetricTypes.values()) {
-            CheckBox checkbox = new CheckBox(this);
-            checkbox.setText(metric.getMetricText());
-            checkbox.setTag(metric.name());
-            checkbox.setOnCheckedChangeListener((btnView, isChecked) -> {
-                String element = (String) btnView.getTag();
-
-                if (isChecked) {
-                    selectedTypes.add(element);
-                } else {
-                    selectedTypes.remove(element);
-                }
-            });
-            checkboxesLayout.addView(checkbox);
-        }
-
-        layout.addView(fromDate);
-        layout.addView(toDate);
-        layout.addView(types);
-        layout.addView(checkboxesLayout);
-
-        builder.setView(layout);
-
-        builder.setPositiveButton("Показать", (dialog, which) -> {
-            if (selectedFrom[0] == null || selectedTo[0] == null) {
-                Toast.makeText(this, "Выберите даты", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (selectedTypes.isEmpty()) {
-                Toast.makeText(this, "Выберите тип", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            fetchReport(selectedFrom[0], selectedTo[0], selectedTypes);
-        });
-
-        builder.setNegativeButton("Отмена", null);
-        builder.show();
-    }
-
-    private void showDatePicker(OnDateSelectedListener listener) {
-
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-
-        DatePickerDialog datePickerDialog = new DatePickerDialog(
-                this,
-                ((view, year1, month1, dayOfMonth) -> {
-                    @SuppressLint("DefaultLocale") String date = String.format(
-                            "%d-%02d-%02d",
-                            year1,
-                            month1 + 1,
-                            dayOfMonth
-                    );
-                    listener.onDaySelected(date);
-                }),
-                year, month, day
-        );
-
-        datePickerDialog.show();
-
-    }
-
     private void updateNavHeader(NavigationView nav, String userName, String userEmail) {
         View headerView = nav.getHeaderView(0);
 
@@ -333,9 +246,11 @@ public class HomeActivity extends AppCompatActivity {
 
             switch (title) {
                 case ADD_RECORD:
-                    createRecord(userId, requestDTO, userId);
+                    createRecord(userId, requestDTO);
+                    break;
                 case EDIT_RECORD:
                     updateRecord(targetRecordIdForEdit, requestDTO, userId);
+                    break;
             }
         }));
 
@@ -345,23 +260,19 @@ public class HomeActivity extends AppCompatActivity {
     }
 
 
-    private void fetchSelfRecordsByDate(String date) {
+    private void fetchSelfRecordsByDate(String date, Long targetId) {
 
         String from = date + "T00:00:00";
         String to = date + "T23:59:59";
 
-        HttpUrl url = Objects.requireNonNull(HttpUrl.parse("http://10.0.2.2:8080/api/v1/health-records/history/" + userId))
+        HttpUrl url = Objects.requireNonNull(HttpUrl.parse("http://localhost:8080/api/v1/health-records/history/" + targetId))
                 .newBuilder()
                 .addQueryParameter("from", from)
                 .addQueryParameter("to", to)
-                .addQueryParameter("actorId", String.valueOf(userId))
+            /*    .addQueryParameter("actorId", String.valueOf(userId))*/
                 .build();
 
-        Request request = new Request.Builder()
-                .url(url)
-                .addHeader("Authorization", "Bearer " + jwtToken)
-                .get()
-                .build();
+        Request request = getHttpRequestForGetMethods(url, jwtToken);
 
         OkHttpClient client = new OkHttpClient();
         client.newCall(request).enqueue(new Callback() {
@@ -401,81 +312,11 @@ public class HomeActivity extends AppCompatActivity {
 
     }
 
-    private void fetchReport(String fromDate, String toDate, List<String> selectedTypes) {
 
-        String from = fromDate + "T00:00:00";
-        String to = toDate + "T23:59:59";
 
-        HttpUrl url = Objects.requireNonNull(HttpUrl.parse("http://10.0.2.2:8080/api/v1/health-records/history/" + userId))
-                .newBuilder()
-                .addQueryParameter("type", selectedTypes.get(0))
-                .addQueryParameter("from", from)
-                .addQueryParameter("to", to)
-                .addQueryParameter("actorId", String.valueOf(userId))
-                .build();
+    private void createRecord(Long targetId, HealthRecordRequestDTO request) {
 
-        Request request = new Request.Builder()
-                .url(url)
-                .addHeader("Authorization", "Bearer " + jwtToken)
-                .get()
-                .build();
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
-        LinearLayout layout = new LinearLayout(HomeActivity.this);
-        TextView types = new TextView(HomeActivity.this);
-
-        OkHttpClient client = new OkHttpClient();
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                runOnUiThread(() -> {
-                    Toast.makeText(HomeActivity.this, "Ошибка сети", Toast.LENGTH_SHORT).show();
-                });
-            }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                assert response.body() != null;
-                String responseBody = response.body().string();
-
-                runOnUiThread(() -> {
-                    if (response.isSuccessful()) {
-
-                        Gson gson = new Gson();
-                        Type type = new TypeToken<List<HealthRecordResponseDTO>>() {
-                        }.getType();
-                        List<HealthRecordResponseDTO> records = gson.fromJson(responseBody, type);
-
-                        //adapter.setRecords(records);
-                        layout.setOrientation(LinearLayout.VERTICAL);
-                        layout.setPadding(50, 30, 50, 30);
-
-                        StringBuilder s = new StringBuilder();
-                        for (HealthRecordResponseDTO r : records) {
-                            s.append(r.getType()).append(" - ").append(r.getValue1()).append(" - ").append(r.getValue2())
-                                    .append(" - ").append(r.getNote()).append("\n");
-                        }
-
-                        types.setText(s.toString());
-
-                        layout.addView(types);
-                        builder.setView(layout);
-                        builder.show();
-
-                        if (records.isEmpty()) {
-                            Toast.makeText(HomeActivity.this, "Нет записей", Toast.LENGTH_SHORT).show();
-                        }
-                    } else {
-                        Toast.makeText(HomeActivity.this, "Ошибка: " + response.code(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        });
-    }
-
-    private void createRecord(Long targetId, HealthRecordRequestDTO request, Long actorId) {
-
-        String url = "http://10.0.2.2:8080/api/v1/health-records/" + targetId + "?actorId=" + actorId;
+        String url = "http://localhost:8080/api/v1/health-records/" + targetId /*+ "?actorId=" + actorId*/;
 
         Gson gson = new Gson();
         String json = gson.toJson(request);
@@ -505,9 +346,9 @@ public class HomeActivity extends AppCompatActivity {
                     if (response.isSuccessful()) {
                         Toast.makeText(HomeActivity.this, "Запись добавлена", Toast.LENGTH_SHORT).show();
 
-                        refreshCurrentDateRecords();
+                        refreshCurrentDateRecords(targetId);
                     } else {
-                        Toast.makeText(HomeActivity.this, "Ошибка: " + response.code(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(HomeActivity.this, "Ошибка: " + response.message(), Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -516,14 +357,14 @@ public class HomeActivity extends AppCompatActivity {
 
     }
 
-    private void refreshCurrentDateRecords() {
+    private void refreshCurrentDateRecords(Long id) {
         if (currentSelectedDate != null) {
-            fetchSelfRecordsByDate(currentSelectedDate);
+            fetchSelfRecordsByDate(currentSelectedDate, id);
         }
     }
 
     private void updateRecord(Long recordId, HealthRecordRequestDTO request, Long actorId) {
-        @SuppressLint("DefaultLocale") String url = String.format("http://10.0.2.2:8080/api/v1/health-records/%d?actorId=%d", recordId, actorId);
+        @SuppressLint("DefaultLocale") String url = String.format("http://localhost:8080/api/v1/health-records/%d?actorId=%d", recordId, actorId);
 
         Gson gson = new Gson();
         String json = gson.toJson(request);
@@ -553,7 +394,7 @@ public class HomeActivity extends AppCompatActivity {
                     if (response.isSuccessful()) {
                         Toast.makeText(HomeActivity.this, "Запись обновлена", Toast.LENGTH_SHORT).show();
 
-                        refreshCurrentDateRecords();
+                        refreshCurrentDateRecords(userId);
                     } else {
                         Toast.makeText(HomeActivity.this, "Ошибка: " + response.code(), Toast.LENGTH_SHORT).show();
                     }
@@ -585,7 +426,7 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void deleteRecord(Long recordId, Long actorId) {
-        @SuppressLint("DefaultLocale") String url = String.format("http://10.0.2.2:8080/api/v1/health-records/%d?actorId=%d", recordId, actorId);
+        @SuppressLint("DefaultLocale") String url = String.format("http://localhost:8080/api/v1/health-records/%d?actorId=%d", recordId, actorId);
 
         Request request = new Request.Builder()
                 .url(url)
@@ -607,7 +448,7 @@ public class HomeActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (response.isSuccessful()) {
                         Toast.makeText(HomeActivity.this, "Запись удалена", Toast.LENGTH_SHORT).show();
-                        refreshCurrentDateRecords();
+                        refreshCurrentDateRecords(userId);
                     } else {
                         Toast.makeText(HomeActivity.this, "Ошибка удаления", Toast.LENGTH_SHORT).show();
                     }
@@ -616,15 +457,7 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    private String[] getMetricTypesText() {
-        String[] s = new String[MetricTypes.values().length];
-        int counter = 0;
-        for (MetricTypes types : MetricTypes.values()) {
-            s[counter] = types.getMetricText();
-            counter++;
-        }
-        return s;
-    }
+
 
     private void logout() {
         SharedPreferences pref = getSharedPreferences("app_prefs", MODE_PRIVATE);

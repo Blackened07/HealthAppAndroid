@@ -16,6 +16,17 @@
     <string name="user_email">email@mail.ru</string>
     <string name="records_by_date">Записи за :</string>
     <string name="get_report">Создать отчёт</string>
+    <string name="Report">Отчёт</string>
+    <string name="orderSet">Параметры отчёта</string>
+    <string name="FromDate">Дата от:</string>
+    <string name="choseFromDate">Выбрать дату начала</string>
+    <string name="ToDate">Дата до:</string>
+    <string name="ChoseToDate">Выбрать дату конца</string>
+    <string name="ChoseMetricTypeTitle">Выберите тип метрик</string>
+    <string name="GenerateReport">📋 Сформировать отчёт</string>
+    <string name="Results">Результаты:</string>
+    <string name="exportExcel">📎 Excel</string>
+    <string name="SendEmail">📧 Отправить</string>
     <string-array name="account_role">
         <item>Пользователь</item>
         <item>Доктор</item>

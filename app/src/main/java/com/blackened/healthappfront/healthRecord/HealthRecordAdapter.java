@@ -61,6 +61,7 @@ public class HealthRecordAdapter extends RecyclerView.Adapter<HealthRecordAdapte
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         HealthRecordResponseDTO record = records.get(position);
 
+        holder.tvDate.setText(record.getDisplayDate());
         holder.tvType.setText(record.getDisplayType());
         holder.tvValue.setText(record.getDisplayValue());
 
@@ -99,11 +100,12 @@ public class HealthRecordAdapter extends RecyclerView.Adapter<HealthRecordAdapte
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvType, tvValue;
+        TextView tvDate, tvType, tvValue;
         ImageButton btnNote, btnDelete, btnEdit;
 
         ViewHolder(View itemView) {
             super(itemView);
+            tvDate = itemView.findViewById(R.id.tv_date_item);
             tvType = itemView.findViewById(R.id.tv_type);
             tvValue = itemView.findViewById(R.id.tv_value);
             btnDelete = itemView.findViewById(R.id.btn_delete);

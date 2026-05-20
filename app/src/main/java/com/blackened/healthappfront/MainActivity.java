@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
         OkHttpClient client = new OkHttpClient();
 
         Request httpRequest = new Request.Builder()
-                .url("http://10.0.2.2:8080/api/v1/auth/login")
+                .url("http://localhost:8080/api/v1/auth/login")
                 .post(requestBody)
                 .build();
 
@@ -197,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
         OkHttpClient client = new OkHttpClient();
 
         Request httpRequest = new Request.Builder()
-                .url("http://10.0.2.2:8080/api/v1/auth/register")
+                .url("http://localhost:8080/api/v1/auth/register")
                 .post(requestBody)
                 .build();
 

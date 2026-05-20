@@ -76,6 +76,10 @@ public class HealthRecordResponseDTO {
         this.userName = userName;
     }
 
+    public String getDisplayDate() {
+        return timestamp.substring(0, 10);
+    }
+
     public String getDisplayValue() {
         if (value1 != null && value2 > 0) {
             return value1 + " / " + value2;
