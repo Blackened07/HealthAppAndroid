@@ -11,8 +11,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.gson.Gson;
+
 import okhttp3.HttpUrl;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
@@ -79,10 +82,23 @@ public abstract class BaseActivity extends AppCompatActivity {
         return s;
     }
 
+    protected String getJson(Object request) {
+        Gson gson = new Gson();
+        return gson.toJson(request);
+    }
+
     protected Request getHttpRequestForGetMethods(HttpUrl url, String token) {
         return new Request.Builder()
                 .url(url)
                 .addHeader(KeyWords.AUTHORIZATION.getWord(), KeyWords.BEARER.getWord() + token)
                 .get().build();
+    }
+
+    protected Request getHttpRequestForPostMethods(String url, RequestBody body, String token) {
+        return new Request.Builder()
+                .url(url)
+                .addHeader(KeyWords.AUTHORIZATION.getWord(), KeyWords.BEARER.getWord() + token)
+                .post(body)
+                .build();
     }
 }

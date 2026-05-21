@@ -166,6 +166,16 @@ public class HomeActivity extends BaseActivity {
                 logout();
                 return true;
             }
+
+            if (id == R.id.nav_contacts) {
+                showContacts();
+                return true;
+            }
+
+            if (id == R.id.nav_family) {
+                //TODO: ПОКА ВРЕМЕННО ВЫЗЫВАЮ НАПРЯМУЮ. ПОЗЖЕ СДЕЛАТЬ ВЫЗОВ НУЖНОЙ АКТИВИТИ
+                startActivity(new Intent(this, NoFamilyActivity.class));
+            }
             return false;
         });
 
@@ -178,6 +188,7 @@ public class HomeActivity extends BaseActivity {
                 userEmail
         );
     }
+
     private void updateNavHeader(NavigationView nav, String userName, String userEmail) {
         View headerView = nav.getHeaderView(0);
 
@@ -318,16 +329,12 @@ public class HomeActivity extends BaseActivity {
 
         String url = "http://localhost:8080/api/v1/health-records/" + targetId /*+ "?actorId=" + actorId*/;
 
-        Gson gson = new Gson();
-        String json = gson.toJson(request);
 
-        RequestBody body = RequestBody.create(json, MediaType.parse("application/json"));
+        String json = getJson(request);
 
-        Request httpRequest = new Request.Builder()
-                .url(url)
-                .addHeader("Authorization", "Bearer " + jwtToken)
-                .post(body)
-                .build();
+        RequestBody body = RequestBody.create(json, MediaType.parse(KeyWords.APPLICATION_JSON.getWord()));
+
+        Request httpRequest = getHttpRequestForPostMethods(url, body, jwtToken);
 
         OkHttpClient client = new OkHttpClient();
         client.newCall(httpRequest).enqueue(new Callback() {
@@ -366,8 +373,7 @@ public class HomeActivity extends BaseActivity {
     private void updateRecord(Long recordId, HealthRecordRequestDTO request, Long actorId) {
         @SuppressLint("DefaultLocale") String url = String.format("http://localhost:8080/api/v1/health-records/%d?actorId=%d", recordId, actorId);
 
-        Gson gson = new Gson();
-        String json = gson.toJson(request);
+        String json = getJson(request);
 
         RequestBody body = RequestBody.create(json, MediaType.parse("application/json"));
 
@@ -457,11 +463,14 @@ public class HomeActivity extends BaseActivity {
         });
     }
 
+    private void showContacts() {
 
+
+    }
 
     private void logout() {
-        SharedPreferences pref = getSharedPreferences("app_prefs", MODE_PRIVATE);
-        pref.edit().clear().apply();
+        /*SharedPreferences pref = getSharedPreferences(KeyWords.APP_PREFS.getWord(), MODE_PRIVATE);*/
+        preferences.edit().clear().apply();
         startActivity(new Intent(this, MainActivity.class));
         finish();
     }

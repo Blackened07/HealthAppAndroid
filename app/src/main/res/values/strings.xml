@@ -27,6 +27,13 @@
     <string name="Results">Результаты:</string>
     <string name="exportExcel">📎 Excel</string>
     <string name="SendEmail">📧 Отправить</string>
+    <string name="Nav_Contacts">Контакты</string>
+    <string name="Nav_Profile">Профиль</string>
+    <string name="Nav_Settings">Настройки</string>
+    <string name="Nav_Logout">Выход</string>
+    <string name="Create_Family">Создать Семью</string>
+    <string name="send_secret_code">Отправить секретный код</string>
+    <string name="Nav_family">Семья</string>
     <string-array name="account_role">
         <item>Пользователь</item>
         <item>Доктор</item>

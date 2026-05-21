@@ -3,14 +3,22 @@
 
     <item
         android:id="@+id/nav_profile"
-        android:title="Профиль" />
+        android:title="@string/Nav_Profile" />
+
+    <item
+        android:id="@+id/nav_family"
+        android:title="@string/Nav_family" />
+
+    <item
+        android:id="@+id/nav_contacts"
+        android:title="@string/Nav_Contacts" />
 
     <item
         android:id="@+id/nav_settings"
-        android:title="Настройки" />
+        android:title="@string/Nav_Settings" />
 
     <item
         android:id="@+id/nav_logout"
-        android:title="Выход" />
+        android:title="@string/Nav_Logout" />
 
 </menu>

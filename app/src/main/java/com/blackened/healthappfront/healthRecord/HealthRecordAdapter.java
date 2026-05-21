@@ -82,16 +82,6 @@ public class HealthRecordAdapter extends RecyclerView.Adapter<HealthRecordAdapte
                 noteClickListener.onNote(record);
             }
         });
-
-       /* if (record.getNote() != null && !record.getNote().isEmpty()) {
-            holder.tvNote.setText(record.getNote());
-            holder.tvNote.setVisibility(View.VISIBLE);
-        } else {
-            holder.tvNote.setVisibility(View.GONE);
-        }*/
-
-    /*    holder.btnEdit.setOnClickListener(v -> listener.onEdit(record));
-        holder.btnDelete.setOnClickListener(v -> listener.onDelete(record));*/
     }
 
     @Override

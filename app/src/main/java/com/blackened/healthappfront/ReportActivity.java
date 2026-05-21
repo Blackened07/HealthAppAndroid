@@ -218,9 +218,9 @@ public class ReportActivity extends BaseActivity{
 
                         if (currentRecords.isEmpty()) {
                             Toast.makeText(ReportActivity.this, "Нет записей", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(ReportActivity.this, "Найдено записей", Toast.LENGTH_SHORT).show();
-                        }
+                        } /*else {
+                            //Toast.makeText(ReportActivity.this, "Найдено записей", Toast.LENGTH_SHORT).show();
+                        }*/
                     } else {
                         Toast.makeText(ReportActivity.this, "Ошибка: " + response.code(), Toast.LENGTH_SHORT).show();
                     }

@@ -18,6 +18,8 @@
             android:name=".HomeActivity"
             android:exported="false" />
         <activity android:name=".ReportActivity"/>
+        <activity android:name=".NoFamilyActivity"
+            android:exported="false"/>
         <activity
             android:name=".MainActivity"
             android:exported="true">
