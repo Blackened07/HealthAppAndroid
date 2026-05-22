@@ -91,7 +91,7 @@ public class HealthRecordResponseDTO {
         switch (type) {
             case "BLOOD_PRESSURE":
                 return "Давление";
-            case "GLUCOUSE":
+            case "GLUCOSE":
                 return "Сахар";
             case "TEMPERATURE":
                 return "Температура";

@@ -2,39 +2,25 @@ package com.blackened.healthappfront;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.blackened.healthappfront.healthRecord.HealthRecordAdapter;
+import com.blackened.healthappfront.adapter.HealthRecordAdapterWithoutButtons;
 import com.blackened.healthappfront.healthRecord.HealthRecordResponseDTO;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Objects;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class ReportActivity extends BaseActivity{
 
@@ -46,15 +32,11 @@ public class ReportActivity extends BaseActivity{
 
     private Spinner spinnerMetricType;
     private RecyclerView recyclerView;
-    private HealthRecordAdapter adapter;
+    private HealthRecordAdapterWithoutButtons adapter;
     private List<HealthRecordResponseDTO> currentRecords;
 
     private String fromDate;
     private String toDate;
-
-    private String jwtToken;
-    private Long userId;
-
     private static final String TITLE = "\uD83D\uDCCA Отчёт";
 
 
@@ -67,23 +49,10 @@ public class ReportActivity extends BaseActivity{
         setToolbarTitle(TITLE);
         enableBackButton();
 
-        preferences = getSharedPreferences(KeyWords.APP_PREFS.getWord(), MODE_PRIVATE);
-        jwtToken = preferences.getString(KeyWords.JWT_TOKEN.getWord(), null);
-        userId = preferences.getLong(KeyWords.USER_ID.getWord(), -1);
-
-        if (jwtToken == null || userId == -1) {
-            startActivity(new Intent(this, MainActivity.class));
-            finish();
-            return;
-        }
-
         initViews();
-
         setupRecyclerView();
-
         setupSpinner();
         setupListeners();
-
     }
 
     protected void initViews() {
@@ -101,7 +70,7 @@ public class ReportActivity extends BaseActivity{
                 new LinearLayoutManager(this)
         );
 
-        adapter = new HealthRecordAdapter();
+        adapter = new HealthRecordAdapterWithoutButtons();
         recyclerView.setAdapter(adapter);
     }
     private void setupSpinner() {
@@ -169,64 +138,41 @@ public class ReportActivity extends BaseActivity{
                 spinnerMetricType.getSelectedItem().toString()
         ).name();
 
-        fetchReport(fromDate, toDate, selectedType, userId);
+        fetchReport(fromDate, toDate, selectedType, sessionManager.getUserId());
 
     }
-
-
-    private void fetchReport(String fromDate, String toDate, String selectedTypes, Long targetId) {
+    @SuppressLint("DefaultLocale")
+    private void fetchReport(String fromDate, String toDate, String selectedType, Long targetId) {
 
         String from = fromDate + "T00:00:00";
         String to = toDate + "T23:59:59";
 
-        if (selectedTypes == null || selectedTypes.isEmpty()) {
+        if (selectedType == null || selectedType.isEmpty()) {
             return;
         }
 
-        HttpUrl url = Objects
-                .requireNonNull(HttpUrl.parse("http://localhost:8080/api/v1/health-records/history/" + targetId)) // <- TARGET_ID
-                .newBuilder()
-                .addQueryParameter("type", selectedTypes)
-                .addQueryParameter("from", from)
-                .addQueryParameter("to", to)
-                .build();
-
-        Request request = getHttpRequestForGetMethods(url, jwtToken);
-
-        OkHttpClient client = new OkHttpClient();
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                runOnUiThread(() -> {
-                    Toast.makeText(ReportActivity.this, "Ошибка сети", Toast.LENGTH_SHORT).show();
-                });
-            }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                assert response.body() != null;
-                String responseBody = response.body().string();
-
-                runOnUiThread(() -> {
-                    if (response.isSuccessful()) {
-
+        ApiClient.get(
+                String.format("health-records/history/%d?type=%s&from=%s&to=%s", targetId, selectedType, from, to),
+                sessionManager.getToken(),
+                new ApiClient.ApiCallback() {
+                    @Override
+                    public void onSuccess(String response) {
                         Gson gson = new Gson();
                         Type type = new TypeToken<List<HealthRecordResponseDTO>>() {
                         }.getType();
-                        currentRecords = gson.fromJson(responseBody, type);
+                        currentRecords = gson.fromJson(response, type);
                         adapter.setRecords(currentRecords);
 
                         if (currentRecords.isEmpty()) {
                             Toast.makeText(ReportActivity.this, "Нет записей", Toast.LENGTH_SHORT).show();
-                        } /*else {
-                            //Toast.makeText(ReportActivity.this, "Найдено записей", Toast.LENGTH_SHORT).show();
-                        }*/
-                    } else {
-                        Toast.makeText(ReportActivity.this, "Ошибка: " + response.code(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Toast.makeText(ReportActivity.this, "Ошибка сети", Toast.LENGTH_SHORT).show();
                     }
                 });
-            }
-        });
     }
 
     private void exportEcxel() {

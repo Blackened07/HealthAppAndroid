@@ -20,10 +20,23 @@ import okhttp3.RequestBody;
 public abstract class BaseActivity extends AppCompatActivity {
 
     protected Toolbar toolbar;
-    protected SharedPreferences preferences;
+    protected SessionManager sessionManager;
+
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        sessionManager = new SessionManager(this);
+
+        Long currentId = sessionManager.getUserId();
+        String jwtToken = sessionManager.getToken();
+
+        if (jwtToken == null || currentId == -1) {
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+            return;
+        }
+
     }
 
     @Override
@@ -82,11 +95,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         return s;
     }
 
-    protected String getJson(Object request) {
-        Gson gson = new Gson();
-        return gson.toJson(request);
-    }
-
     protected Request getHttpRequestForGetMethods(HttpUrl url, String token) {
         return new Request.Builder()
                 .url(url)
@@ -94,11 +102,4 @@ public abstract class BaseActivity extends AppCompatActivity {
                 .get().build();
     }
 
-    protected Request getHttpRequestForPostMethods(String url, RequestBody body, String token) {
-        return new Request.Builder()
-                .url(url)
-                .addHeader(KeyWords.AUTHORIZATION.getWord(), KeyWords.BEARER.getWord() + token)
-                .post(body)
-                .build();
-    }
 }

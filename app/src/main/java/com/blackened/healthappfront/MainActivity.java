@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 runOnUiThread(() -> {
-                    Toast.makeText(MainActivity.this, "Сервер недоступен" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Сервер недоступен " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
             }
 

@@ -1,4 +1,4 @@
-package com.blackened.healthappfront.healthRecord;
+package com.blackened.healthappfront.adapter;
 
 import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.blackened.healthappfront.R;
+import com.blackened.healthappfront.healthRecord.HealthRecordResponseDTO;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,7 +1,6 @@
 package com.blackened.healthappfront;
 
 import android.app.AlertDialog;
-import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
 import android.widget.Button;
@@ -27,15 +26,13 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
 
-public class NoFamilyActivity extends BaseActivity{
+public class NoFamilyActivity extends BaseActivity {
 
     private static final String TITLE = "Семья";
 
     private Button btnCreate;
     private Button btnSendSecretCode;
-    private String jwtToken;
 
     private FamilyInvitationResponseDTO responseDTO;
 
@@ -46,16 +43,6 @@ public class NoFamilyActivity extends BaseActivity{
 
         setUpToolbar();
         setToolbarTitle(TITLE);
-
-        preferences = getSharedPreferences(KeyWords.APP_PREFS.getWord(), MODE_PRIVATE);
-        long currentId = preferences.getLong(KeyWords.USER_ID.getWord(), -1);
-        jwtToken = preferences.getString(KeyWords.JWT_TOKEN.getWord(), null);
-
-        if (jwtToken == null || currentId == -1) {
-            startActivity(new Intent(this, MainActivity.class));
-            finish();
-            return;
-        }
 
         initViews();
         setupClickListeners();
@@ -97,7 +84,7 @@ public class NoFamilyActivity extends BaseActivity{
 
         builder.setView(layout);
 
-        builder.setPositiveButton(KeyWords.SEND.getWord(), (a, b)-> /*processCreating(invitedUserEmail, familyName)*/ {
+        builder.setPositiveButton(KeyWords.SEND.getWord(), (a, b) -> /*processCreating(invitedUserEmail, familyName)*/ {
 
             String email = invitedUserEmail.getText().toString().trim();
             String fName = familyName.getText().toString().trim();
@@ -107,9 +94,11 @@ public class NoFamilyActivity extends BaseActivity{
                 return;
             }
 
+            //regex email and toast
+
             FamilyInvitationRequestDTO request = new FamilyInvitationRequestDTO(email, fName);
 
-            createPost(request);
+            createInvitation(request);
         });
 
         builder.setNegativeButton(KeyWords.CANCEL.getWord(), null);
@@ -118,61 +107,29 @@ public class NoFamilyActivity extends BaseActivity{
 
     }
 
-    private void processCreating(EditText invitedUserEmail, EditText familyName) {
+    private void createInvitation(FamilyInvitationRequestDTO request) {
 
-        String email = invitedUserEmail.getText().toString().trim();
-        String fName = familyName.getText().toString().trim();
-
-        if (email.isEmpty() || fName.isEmpty()) {
-            Toast.makeText(this, "Заполните оба поля", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        FamilyInvitationRequestDTO request = new FamilyInvitationRequestDTO(email, fName);
-
-        createPost(request);
-
-    }
-
-    private void createPost(FamilyInvitationRequestDTO request) {
-
-        String url = "http://localhost:8080/api/v1/invitation";
-        String json = getJson(request);
-        RequestBody body = RequestBody.create(json, MediaType.parse(KeyWords.APPLICATION_JSON.getWord()));
-        Request httpRequest = getHttpRequestForPostMethods(url, body, jwtToken);
-        OkHttpClient client = new OkHttpClient();
-
-        client.newCall(httpRequest).enqueue(new Callback() {
+        ApiClient.post("invitation", sessionManager.getToken(), request, new ApiClient.ApiCallback() {
             @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                runOnUiThread(() -> {
-                    Toast.makeText(NoFamilyActivity.this, "Something wrong", Toast.LENGTH_SHORT).show();
-                });
+            public void onSuccess(String response) {
+                Gson gson = new Gson();
+
+                if (response.contains("critical")) {
+                    ErrorResponse dto = gson.fromJson(response, ErrorResponse.class);
+
+                    Toast.makeText(NoFamilyActivity.this, dto.getMessage(), Toast.LENGTH_SHORT).show();
+                } else {
+                    Type type = new TypeToken<FamilyInvitationResponseDTO>() {
+                    }.getType();
+                    responseDTO = gson.fromJson(response, type);
+                    Toast.makeText(NoFamilyActivity.this, responseDTO.getSecretCode(), Toast.LENGTH_SHORT).show();
+                }
+
             }
 
             @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-
-                assert response.body() != null;
-                String responseBody = response.body().string();
-
-                runOnUiThread(() -> {
-                    if (response.isSuccessful()) {
-
-                        Gson gson = new Gson();
-                        Type type = new TypeToken<FamilyInvitationResponseDTO>(){}.getType();
-                        responseDTO = gson.fromJson(responseBody, type);
-
-                        if (!responseDTO.getSecretCode().isEmpty()) {
-                            Toast.makeText(NoFamilyActivity.this, responseDTO.getSecretCode(), Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(NoFamilyActivity.this, "Something wrong", Toast.LENGTH_SHORT).show();
-                        }
-
-                    } else {
-                        Toast.makeText(NoFamilyActivity.this, "Something wrong", Toast.LENGTH_SHORT).show();
-                    }
-                });
+            public void onError(String error) {
+                Toast.makeText(NoFamilyActivity.this, "Something wrong 3", Toast.LENGTH_SHORT).show();
             }
         });
 
