@@ -1,31 +1,26 @@
 package com.blackened.healthappfront;
 
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
+import android.view.Gravity;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.blackened.healthappfront.familyInvitation.CreateFamilyRequest;
 import com.blackened.healthappfront.familyInvitation.FamilyInvitationRequestDTO;
 import com.blackened.healthappfront.familyInvitation.FamilyInvitationResponseDTO;
+import com.blackened.healthappfront.familyInvitation.FamilyResponseDTO;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import java.io.IOException;
-import java.lang.reflect.Type;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 public class NoFamilyActivity extends BaseActivity {
 
@@ -119,10 +114,12 @@ public class NoFamilyActivity extends BaseActivity {
 
                     Toast.makeText(NoFamilyActivity.this, dto.getMessage(), Toast.LENGTH_SHORT).show();
                 } else {
-                    Type type = new TypeToken<FamilyInvitationResponseDTO>() {
-                    }.getType();
-                    responseDTO = gson.fromJson(response, type);
-                    Toast.makeText(NoFamilyActivity.this, responseDTO.getSecretCode(), Toast.LENGTH_SHORT).show();
+                    /*Type type = new TypeToken<FamilyInvitationResponseDTO>() {
+                    }.getType();*/
+                    responseDTO = gson.fromJson(response, FamilyInvitationResponseDTO.class);
+
+                    showSecretCodeAlert(responseDTO);
+                    /*Toast.makeText(NoFamilyActivity.this, responseDTO.getSecretCode(), Toast.LENGTH_SHORT).show();*/
                 }
 
             }
@@ -135,7 +132,133 @@ public class NoFamilyActivity extends BaseActivity {
 
     }
 
+    private void showSecretCodeAlert(FamilyInvitationResponseDTO responseDTO) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("✨ Секретный код создан ✨");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 30, 50, 30);
+        //layout.setGravity(Gravity.CENTER);
+
+        TextView description = new TextView(this);
+        description.setText("Отправьте этот код человеку, которого хотите пригласить");
+        description.setTextSize(14);
+        description.setGravity(Gravity.CENTER);
+        description.setPadding(0, 0, 0, 20);
+
+        TextView secretCode = new TextView(this);
+        secretCode.setText(responseDTO.getSecretCode());
+        secretCode.setTextSize(28);
+
+        layout.addView(description);
+        layout.addView(secretCode);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("\uD83D\uDCE4 Поделиться", (d, w) -> {
+            shareInvitation(responseDTO.getSecretCode());
+        });
+
+        builder.setNeutralButton("\uD83D\uDCCB Копировать", (d, w) -> {
+            copyToClipboard(responseDTO.getSecretCode());
+        });
+
+        builder.setNegativeButton("Закрыть", null);
+
+        builder.show();
+
+    }
+    private void shareInvitation(String secretCode) {
+        String message = "\uD83C\uDFE0 Приглашение в семью!\nКод для вступления: " + secretCode;
+
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_TEXT, message);
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Приглашение в семью");
+
+        startActivity(Intent.createChooser(intent, "Отправить через: "));
+    }
+
+    private void copyToClipboard(String secretCode) {
+        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("invitation_code", secretCode);
+        clipboardManager.setPrimaryClip(clip);
+        Toast.makeText(this, " ✅ Код скопирован", Toast.LENGTH_LONG).show();
+    }
+
     private void processSending() {
+
+        //EnterCode
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Проверка кода");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 30, 50, 30);
+
+        EditText adminUserEmail = new EditText(this);
+        EditText secretCode = new EditText(this);
+
+        adminUserEmail.setHint("Введите email ");
+        adminUserEmail.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+
+        secretCode.setHint("Введите код");
+        secretCode.setInputType(InputType.TYPE_CLASS_TEXT);
+
+        layout.addView(adminUserEmail);
+        layout.addView(secretCode);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Отправить", (d, w) -> {
+            String adminEmail = adminUserEmail.getText().toString().trim();
+            String code = secretCode.getText().toString().trim();
+
+            sendInv(code, adminEmail);
+        });
+        //Click to send
+        //if all right -> create family -> start new activity (Family manager)
+        //else -> AlertDialog with error text
+        builder.setNegativeButton("Отмена", null);
+
+        builder.show();
+    }
+
+    private void sendInv(String code, String adminEmail) {
+
+        CreateFamilyRequest familyRequest = new CreateFamilyRequest(code, adminEmail);
+
+        String endpoint = "families/" + adminEmail;
+
+        ApiClient.post(endpoint, sessionManager.getToken(), familyRequest, new ApiClient.ApiCallback() {
+            @Override
+            public void onSuccess(String response) {
+                Gson gson = new Gson();
+                if (response.contains("critical")) {
+                    ErrorResponse dto = gson.fromJson(response, ErrorResponse.class);
+                    Toast.makeText(NoFamilyActivity.this, dto.getMessage(), Toast.LENGTH_LONG).show();
+                } else {
+                    FamilyResponseDTO dto =  gson.fromJson(response, FamilyResponseDTO.class);
+
+                    Toast.makeText(NoFamilyActivity.this, "Семья создана!!!", Toast.LENGTH_LONG).show();
+
+                    Intent intent = new Intent(NoFamilyActivity.this, FamilyManagerActivity.class);
+                    intent.putExtra("familyId", dto.getFamilyId());
+                    intent.putExtra("familyName", dto.getFamilyName());
+                    intent.putExtra("familyRole", dto.getDisplayableRole());
+
+                    startActivity(intent);
+                }
+
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(NoFamilyActivity.this, error, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 

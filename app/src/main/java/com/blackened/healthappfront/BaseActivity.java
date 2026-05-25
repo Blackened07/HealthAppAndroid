@@ -95,11 +95,5 @@ public abstract class BaseActivity extends AppCompatActivity {
         return s;
     }
 
-    protected Request getHttpRequestForGetMethods(HttpUrl url, String token) {
-        return new Request.Builder()
-                .url(url)
-                .addHeader(KeyWords.AUTHORIZATION.getWord(), KeyWords.BEARER.getWord() + token)
-                .get().build();
-    }
 
 }

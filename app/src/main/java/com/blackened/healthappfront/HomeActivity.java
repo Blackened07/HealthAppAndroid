@@ -9,7 +9,6 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CalendarView;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -22,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.blackened.healthappfront.adapter.HealthRecordAdapter;
+import com.blackened.healthappfront.familyInvitation.FamilyResponseDTO;
 import com.blackened.healthappfront.healthRecord.HealthRecordRequestDTO;
 import com.blackened.healthappfront.healthRecord.HealthRecordResponseDTO;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -32,17 +32,13 @@ import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Objects;
 
 import java.lang.reflect.Type;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.HttpUrl;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class HomeActivity extends BaseActivity {
@@ -144,7 +140,13 @@ public class HomeActivity extends BaseActivity {
 
             if (id == R.id.nav_family) {
                 //TODO: ПОКА ВРЕМЕННО ВЫЗЫВАЮ НАПРЯМУЮ. ПОЗЖЕ СДЕЛАТЬ ВЫЗОВ НУЖНОЙ АКТИВИТИ
-                startActivity(new Intent(this, NoFamilyActivity.class));
+                checkFamilyStatus();
+
+                return true;
+                //check isNoFamily -> get on server request
+                //if noFamily -> NoFamilyActivity
+                //else -> FamilyManagerActivity
+                //startActivity(new Intent(this, NoFamilyActivity.class));
             }
             return false;
         });
@@ -157,6 +159,36 @@ public class HomeActivity extends BaseActivity {
                 firstName,
                 userEmail
         );
+    }
+
+    private void checkFamilyStatus() {
+        String url = "families/is-no-family";
+
+        ApiClient.get(url, sessionManager.getToken(), new ApiClient.ApiCallback() {
+            @Override
+            public void onSuccess(String response) {
+                Gson gson = new Gson();
+                FamilyResponseDTO dto = gson.fromJson(response, FamilyResponseDTO.class);
+
+                Intent intent;
+
+                if (dto.isNoFamily()) {
+                    intent = new Intent(HomeActivity.this, NoFamilyActivity.class);
+                } else {
+                    intent = new Intent(HomeActivity.this, FamilyManagerActivity.class);
+                    intent.putExtra("familyId", dto.getFamilyId());
+                    intent.putExtra("familyName", dto.getFamilyName());
+                    intent.putExtra("familyRole", dto.getDisplayableRole());
+                }
+
+                startActivity(intent);
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(HomeActivity.this, "Ошибка", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void updateNavHeader(NavigationView nav, String userName, String userEmail) {
@@ -306,12 +338,17 @@ public class HomeActivity extends BaseActivity {
         ApiClient.put(String.format("%d?actorId=%d", recordId, actorId), sessionManager.getToken(), request, new ApiClient.ApiCallback() {
             @Override
             public void onSuccess(String response) {
-                if (response.contains("SOME_MESSAGE")) {
+                if (response.contains("critical")) {
+                    Gson gson = new Gson();
+                    ErrorResponse dto = gson.fromJson(response, ErrorResponse.class);
+
+                    Toast.makeText(HomeActivity.this, dto.getMessage(), Toast.LENGTH_SHORT).show();
+
+                } else {
+
                     Toast.makeText(HomeActivity.this, "Запись обновлена", Toast.LENGTH_SHORT).show();
 
                     refreshCurrentDateRecords(sessionManager.getUserId());
-                } else {
-                    Toast.makeText(HomeActivity.this, "Ошибка", Toast.LENGTH_SHORT).show();
                 }
             }
 
