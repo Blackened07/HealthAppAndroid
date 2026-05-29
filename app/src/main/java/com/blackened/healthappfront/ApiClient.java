@@ -1,5 +1,6 @@
 package com.blackened.healthappfront;
 
+import android.icu.util.TimeZone;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -12,7 +13,6 @@ import java.io.IOException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -21,7 +21,11 @@ import okhttp3.Response;
 
 public class ApiClient {
 
-    private static final String BASE_URL = "http://localhost:8080/api/v1/";
+    public static final String BASE_URL = "http://161.104.33.246:8080/api/v1/";
+
+/*    public static final String BASE_URL = "http://localhost:8080/api/v1/";*/
+    public static final Long TIMESTAMP = System.currentTimeMillis();
+    public static final Integer ZONE_OFFSET = TimeZone.getDefault().getOffset(TIMESTAMP);
     private static final MediaType JSON = MediaType.parse(KeyWords.APPLICATION_JSON.getWord());
     private static final OkHttpClient CLIENT = new OkHttpClient();
     private static final Gson GSON = new Gson();
@@ -77,12 +81,12 @@ public class ApiClient {
     public static void delete() {
     }
 
-    private static void execute(Request httpRequest, ApiCallback callbackack) {
+    private static void execute(Request httpRequest, ApiCallback callback) {
         CLIENT.newCall(httpRequest).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 mainHandler.post(() -> {
-                    callbackack.onError("Ошибка сети " + e.getMessage());
+                    callback.onError("Ошибка сети " + e.getMessage());
                 });
             }
 
@@ -92,7 +96,7 @@ public class ApiClient {
                 String responseBody = response.body() != null ? response.body().string() : "0";
 
                 mainHandler.post(() -> {
-                    callbackack.onSuccess(responseBody);
+                    callback.onSuccess(responseBody);
                 });
             }
         });

@@ -36,6 +36,24 @@
     <string name="Nav_family">Семья</string>
     <string name="inviteMember">Добавить</string>
     <string name="add_virtual">Добавить виртуального</string>
+    <string name="remove_member">Удалить участника</string>
+    <string name="inspect_member">Просмотр пользователя</string>
+    <string name="member_name">👥 Участник:</string>
+    <string name="add_record_to_member">Добавить запись участнику</string>
+    <string name="_000000">000000</string>
+    <string name="confirm">Подтвердить</string>
+    <string name="code_message">Мы отправили 6-значный код на вашу почту</string>
+    <string name="email_confirm">Подтверждение почты</string>
+    <string name="descr_logo">Логотип</string>
+    <string name="under_logo_text">Ваш личный дневник здоровья</string>
+    <string name="name">Имя</string>
+    <string name="bottom_text">Войдите или создайте аккаунт, чтобы начать</string>
+    <string name="enter">Войти</string>
+    <string name="registration">Регистрация</string>
+    <string name="login">Вход</string>
+    <string name="role">Роль</string>
+    <string name="pass_hint">Пароль</string>
+    <string name="email_hint">Email</string>
     <string-array name="account_role">
         <item>Пользователь</item>
         <item>Доктор</item>

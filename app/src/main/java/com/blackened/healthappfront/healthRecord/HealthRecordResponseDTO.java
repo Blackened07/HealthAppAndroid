@@ -1,14 +1,29 @@
 package com.blackened.healthappfront.healthRecord;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.Locale;
+
 public class HealthRecordResponseDTO {
 
     private Long id;
+
     private String type;
+
     private Double value1;
+
     private Double value2;
+
     private String note;
+   /* //TODO: CREATE AT TIMESTAMP ABD DEVICE_OFFSET AT ZONE_OFFSET
+    private Long TIMESTAMP;
+    private Integer OFFSET_ZONE;*/
     private String timestamp;
     private String userName;
+
+    public HealthRecordResponseDTO() {
+    }
 
     public HealthRecordResponseDTO(Long id, String type, Double value1, Double value2, String note, String timestamp, String userName) {
         this.id = id;
@@ -41,7 +56,7 @@ public class HealthRecordResponseDTO {
     }
 
     public String getTimestamp() {
-        return timestamp;
+        return timestamp.length() >= 10 ? timestamp.substring(0, 10) : timestamp;
     }
 
     public String getUserName() {
@@ -77,7 +92,23 @@ public class HealthRecordResponseDTO {
     }
 
     public String getDisplayDate() {
-        return timestamp.substring(0, 10);
+
+        if (timestamp == null || timestamp.isEmpty()) {
+            return "";
+        }
+
+        try {
+            LocalDateTime time = LocalDateTime.parse(timestamp);
+
+            DateTimeFormatter formatter = DateTimeFormatter
+                    .ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT)
+                    .withLocale(Locale.getDefault());
+
+            return time.format(formatter);
+
+        } catch (Exception e) {
+            return getTimestamp();
+        }
     }
 
     public String getDisplayValue() {

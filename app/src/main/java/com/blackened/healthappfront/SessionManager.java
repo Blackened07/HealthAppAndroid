@@ -2,15 +2,27 @@ package com.blackened.healthappfront;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+
+import com.blackened.healthappfront.auth.AuthResponse;
 
 public class SessionManager {
     private SharedPreferences preferences;
 
     public SessionManager(Context context) {
         this.preferences = context.getSharedPreferences(KeyWords.APP_PREFS.getWord(), MODE_PRIVATE);
+    }
+
+    public void edit(String jwtToken, String email, AuthResponse authResponse) {
+        preferences.edit()
+                .putString("jwt_token", jwtToken)
+                .putString("user_email", email)
+                .putLong("user_id", authResponse.getUserId())
+                .putString("user_name", authResponse.getFirstName())
+                .apply();
     }
 
     public String getToken() {
@@ -31,7 +43,11 @@ public class SessionManager {
 
     public void logout(Context context) {
         preferences.edit().clear().apply();
-        context.startActivity(new Intent(context, MainActivity.class));
-        //finish();
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        context.startActivity(intent);
+        if (context instanceof Activity) {
+            ((Activity) context).finishAffinity();
+        }
     }
 }

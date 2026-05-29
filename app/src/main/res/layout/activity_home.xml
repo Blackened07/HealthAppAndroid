@@ -13,14 +13,14 @@
         android:orientation="vertical">
 
 
-        <include layout="@layout/toolbar" >
+        <include layout="@layout/toolbar">
 
         </include>
 
         <CalendarView
             android:id="@+id/calendar_view"
             android:layout_width="match_parent"
-            android:layout_height="360dp"
+            android:layout_height="309dp"
             android:firstDayOfWeek="2" />
 
         <TextView

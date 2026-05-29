@@ -1,155 +1,155 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical">
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <include layout="@layout/toolbar"> </include>
-
-    <ScrollView
+    <LinearLayout xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
-        tools:ignore="UselessParent">
+        android:orientation="vertical">
 
-        <LinearLayout
+        <include layout="@layout/toolbar"></include>
+
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            tools:ignore="UselessParent">
 
-
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                android:layout_marginBottom="24dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🏠 Название семьи"
-                        android:textSize="14sp"
-                        android:textColor="@android:color/darker_gray" />
-
-                    <TextView
-                        android:id="@+id/tv_family_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Загрузка..."
-                        android:textSize="24sp"
-                        android:textStyle="bold"
-                        android:layout_marginTop="4dp"
-                        android:layout_marginBottom="16dp" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="@android:color/darker_gray" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="👑 Ваша роль"
-                        android:textSize="14sp"
-                        android:textColor="@android:color/darker_gray"
-                        android:layout_marginTop="16dp" />
-
-                    <TextView
-                        android:id="@+id/tv_role"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Загрузка..."
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:layout_marginTop="4dp" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Заголовок списка участников -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="12dp">
+                android:orientation="vertical"
+                android:padding="16dp">
 
-                <TextView
-                    android:layout_width="0dp"
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="👥 Участники семьи"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:layout_marginBottom="24dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp">
 
-                <!-- Кнопка добавления (будет видна только для админа) -->
-                <ImageButton
-                    android:id="@+id/btn_add_member"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@android:drawable/ic_input_add"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Добавить участника"
-                    android:visibility="gone" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🏠 Название семьи"
+                            android:textColor="@android:color/darker_gray"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/tv_family_name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="16dp"
+                            android:text="Загрузка..."
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="@android:color/darker_gray" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="👑 Ваша роль"
+                            android:textColor="@android:color/darker_gray"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/tv_role"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Загрузка..."
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Заголовок списка участников -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="👥 Участники семьи"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <!-- Кнопка добавления (будет видна только для админа) -->
+                    <ImageButton
+                        android:id="@+id/btn_add_member"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Добавить участника"
+                        android:src="@android:drawable/ic_input_add"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_family_members"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
+
+
+                <!--          &lt;!&ndash; Кнопка "Выйти из семьи" (только для MEMBER) &ndash;&gt;
+                          <com.google.android.material.button.MaterialButton
+                              android:id="@+id/btn_leave_family"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="32dp"
+                              android:text="🚪 Выйти из семьи"
+                              android:backgroundTint="@android:color/holo_red_dark"
+                              android:textColor="@android:color/white"
+                              android:visibility="gone" />
+
+                          &lt;!&ndash; Кнопка "Расформировать семью" (только для ADMIN) &ndash;&gt;
+                          <com.google.android.material.button.MaterialButton
+                              android:id="@+id/btn_delete_family"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="16dp"
+                              android:layout_marginBottom="32dp"
+                              android:text="🗑 Расформировать семью"
+                              android:backgroundTint="@android:color/holo_red_dark"
+                              android:textColor="@android:color/white"
+                              android:visibility="gone" />-->
             </LinearLayout>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_family_members"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false" />
 
+        </ScrollView>
 
-            <TextView
-                android:id="@+id/tv_empty_members"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="В семье пока нет участников"
-                android:textSize="14sp"
-                android:textColor="@android:color/darker_gray"
-                android:gravity="center"
-                android:padding="32dp"
-                android:visibility="gone" />
+    </LinearLayout>
 
-  <!--          &lt;!&ndash; Кнопка "Выйти из семьи" (только для MEMBER) &ndash;&gt;
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_leave_family"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:text="🚪 Выйти из семьи"
-                android:backgroundTint="@android:color/holo_red_dark"
-                android:textColor="@android:color/white"
-                android:visibility="gone" />
-
-            &lt;!&ndash; Кнопка "Расформировать семью" (только для ADMIN) &ndash;&gt;
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_delete_family"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="32dp"
-                android:text="🗑 Расформировать семью"
-                android:backgroundTint="@android:color/holo_red_dark"
-                android:textColor="@android:color/white"
-                android:visibility="gone" />-->
-        </LinearLayout>
-
-
-
-    </ScrollView>
-
-</LinearLayout>
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/nav_menu" />
+</androidx.drawerlayout.widget.DrawerLayout>

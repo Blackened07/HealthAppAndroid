@@ -1,21 +1,20 @@
 package com.blackened.healthappfront.user;
 
-import java.time.LocalDateTime;
-
 public class UserResponseDTO {
     private Long id;
     private String email;
     private String firstName;
     private String familyRole;
-    private LocalDateTime lastActivity;
+    private String lastActivity;
 
-    public UserResponseDTO(Long id, String email, String firstName, String familyRole, LocalDateTime lastActivity) {
+    public UserResponseDTO(Long id, String email, String firstName, String familyRole, String lastActivity) {
         this.id = id;
         this.email = email;
         this.firstName = firstName;
         this.familyRole = familyRole;
         this.lastActivity = lastActivity;
     }
+
 
     public Long getId() {
         return id;
@@ -49,11 +48,12 @@ public class UserResponseDTO {
         this.familyRole = familyRole;
     }
 
-    public LocalDateTime getLastActivity() {
+    public String getLastActivity() {
         return lastActivity;
     }
 
-    public void setLastActivity(LocalDateTime lastActivity) {
+    public void setLastActivity(String lastActivity) {
         this.lastActivity = lastActivity;
     }
+
 }

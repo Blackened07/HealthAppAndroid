@@ -6,4 +6,9 @@
     <item
         android:id="@+id/add_virtual"
         android:title="@string/add_virtual"/>
+
+    <item
+        android:id="@+id/remove_member"
+        android:title="@string/remove_member"/>
+
 </menu>

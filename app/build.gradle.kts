@@ -45,6 +45,8 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.4.0")
     implementation("com.google.android.material:material:1.9.0")
     implementation("com.google.android.material:material:1.14.0")
+    implementation("org.dhatim:fastexcel:0.18.4")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

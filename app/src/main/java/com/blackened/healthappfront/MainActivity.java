@@ -2,25 +2,24 @@ package com.blackened.healthappfront;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Patterns;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Spinner;
+import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.blackened.healthappfront.auth.AuthResponse;
 import com.blackened.healthappfront.auth.LoginRequest;
 import com.blackened.healthappfront.auth.RegisterAccountRequest;
 import com.blackened.healthappfront.auth.RegisterAccountResponseDTO;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.button.MaterialButtonToggleGroup;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -28,6 +27,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -37,83 +37,135 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class MainActivity extends AppCompatActivity {
-    private EditText etEmail;
-    private EditText etPassword;
-    private EditText etFirstName;
-    private Spinner spinnerSystemRole;
-    private Button registerButton;
-    private Button loginButton;
-    private SharedPreferences preferences;
+public class MainActivity extends BaseActivity {
 
-    @SuppressLint("MissingInflatedId")
+    private TextInputLayout tilFirstName;
+    private TextInputEditText etFirstName;
+    private TextInputLayout tilRole;
+    private MaterialButton btnAction;
+    private TextInputLayout tilEmail;
+    private TextInputEditText etEmail;
+    private TextInputLayout tilPassword;
+    private TextInputEditText etPassword;
+
+    private MaterialAutoCompleteTextView spinnerSystemRole;
+
+    private MaterialButton registerButton;
+    private MaterialButton loginButton;
+    private MaterialButtonToggleGroup toggleGroup;
+    private Map<String, String> roleMap;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+
+      /*  if (sessionManager.getToken() != null) {
+            startActivity(new Intent(this, HomeActivity.class));
+            finish();
+            return;
+        }*/
+
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
-        etEmail = findViewById(R.id.editTextEmail);
-        etPassword = findViewById(R.id.editTextPassword);
-        etFirstName = findViewById(R.id.editTextFirstName);
-        spinnerSystemRole = findViewById(R.id.spinnerSystemRole);
-        registerButton = findViewById(R.id.buttonRegistration);
-        loginButton = findViewById(R.id.buttonLogin);
+        initViews();
 
-        Map<String, String> roleMap = new HashMap<>();
-        roleMap.put("Пользователь", "USER");
-        roleMap.put("Доктор", "DOCTOR");
-
-        registerButton.setOnClickListener(v -> {
-            String email = etEmail.getText().toString().trim();
-            String password = etPassword.getText().toString().trim();
-            String firstname = etFirstName.getText().toString().trim();
-            String selectedRole = spinnerSystemRole.getSelectedItem().toString();
-
-            String systemRole = roleMap.get(selectedRole);
-
-            if (email.isEmpty() || password.isEmpty() || firstname.isEmpty()) {
-
-                Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Toast.makeText(this, "Некорректно введён email", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (password.length() < 6) {
-                Toast.makeText(this, "Пароль должен быть не меньше 6 символов", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            registerUser(email, password, firstname, systemRole);
-        });
-
-        loginButton.setOnClickListener(v -> {
-            String email = etEmail.getText().toString().trim();
-            String password = etPassword.getText().toString().trim();
-
-            if (email.isEmpty() || password.isEmpty()) {
-
-                Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            login(email, password);
-
-        });
-
-        preferences = getSharedPreferences("app_prefs", MODE_PRIVATE);
-
+        setUpRoleMAp();
+        setupListeners();
+        initToggleButtons();
+      /*  inflateSpinner();*/
     }
 
+    /*private void inflateSpinner() {
+        String[] roles = getResources().getStringArray(R.array.account_role);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                roles
+        );
+        spinnerSystemRole.setAdapter(adapter);
+    }*/
+
+    private void setUpRoleMAp() {
+        roleMap = new HashMap<>();
+        roleMap.put("Пользователь", "USER");
+        roleMap.put("Доктор", "DOCTOR");
+    }
+
+    @Override
+    protected void initViews() {
+
+        tilFirstName = findViewById(R.id.til_first_name);
+        tilEmail = findViewById(R.id.til_email);
+        tilPassword = findViewById(R.id.til_password);
+        tilRole = findViewById(R.id.til_role);
+
+        etEmail = findViewById(R.id.et_email);
+        etPassword = findViewById(R.id.et_password);
+        etFirstName = findViewById(R.id.et_first_name);
+        spinnerSystemRole = findViewById(R.id.spinner_role);
+
+        btnAction = findViewById(R.id.btn_action);
+        toggleGroup = findViewById(R.id.toggle_mode);
+
+        registerButton = findViewById(R.id.btn_toggle_register);
+        loginButton = findViewById(R.id.btn_toggle_login);
+
+        if (toggleGroup.getCheckedButtonId() == View.NO_ID) {
+            toggleGroup.check(loginButton.getId());
+        }
+    }
+
+    private void initToggleButtons() {
+
+        toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (isChecked) {
+                if (checkedId == R.id.btn_toggle_login) {
+                    tilFirstName.setVisibility(View.GONE);
+                    tilRole.setVisibility(View.GONE);
+                    btnAction.setText("Войти");
+                } else if (checkedId == registerButton.getId()) {
+                    tilFirstName.setVisibility(View.VISIBLE);
+                    tilRole.setVisibility(View.VISIBLE);
+                    btnAction.setText("Зарегистрироваться");
+                }
+            }
+        });
+    }
+    private void setupListeners() {
+        btnAction.setOnClickListener(v -> {
+            String email = Objects.requireNonNull(etEmail.getText()).toString().trim();
+            String password = Objects.requireNonNull(etPassword.getText()).toString().trim();
+
+            if (tilFirstName.getVisibility() == View.VISIBLE) {
+                String firstname = Objects.requireNonNull(etFirstName.getText()).toString().trim();
+                String selectedRole = spinnerSystemRole.getText().toString();
+                String systemRole = roleMap.get(selectedRole);
+
+                if (email.isEmpty() || password.isEmpty() || firstname.isEmpty()) {
+                    Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    Toast.makeText(this, "Некорректно введён email", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (password.length() < 6) {
+                    Toast.makeText(this, "Пароль должен быть не меньше 6 символов", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                registerUser(email, password, firstname, systemRole);
+            } else {
+                if (email.isEmpty() || password.isEmpty()) {
+                    Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                login(email, password);
+            }
+        });
+    }
     private void login(String email, String password) {
 
         LoginRequest request = new LoginRequest(email, password);
@@ -128,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
         OkHttpClient client = new OkHttpClient();
 
         Request httpRequest = new Request.Builder()
-                .url("http://localhost:8080/api/v1/auth/login")
+                .url(ApiClient.BASE_URL + "auth/login")
                 .post(requestBody)
                 .build();
 
@@ -152,16 +204,7 @@ public class MainActivity extends AppCompatActivity {
 
                         String jwtToken = authResponse.getMessage();
 
-                        preferences.edit()
-                                .putString("jwt_token", jwtToken)
-                                .putString("user_email", email)
-                                .putLong("user_id", authResponse.getUserId())
-                                .putString("user_name", authResponse.getFirstName())
-                                .apply();
-
-                        Toast.makeText(MainActivity.this,
-                                "Вход выполнен успешно!", Toast.LENGTH_SHORT).show();
-
+                        sessionManager.edit(jwtToken, email, authResponse);
 
                         startActivity(new Intent(MainActivity.this, HomeActivity.class));
                         finish();
@@ -197,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
         OkHttpClient client = new OkHttpClient();
 
         Request httpRequest = new Request.Builder()
-                .url("http://localhost:8080/api/v1/auth/register")
+                .url(ApiClient.BASE_URL + "auth/register")
                 .post(requestBody)
                 .build();
 
@@ -224,9 +267,11 @@ public class MainActivity extends AppCompatActivity {
                         etPassword.setText("");
                         etFirstName.setText("");
                         spinnerSystemRole.setSelection(0);
-                        //TODO : подтвердить почту
-                        Toast.makeText(MainActivity.this,
-                                "Регистрация прошла успешно! Теперь войдите в аккаунт!", Toast.LENGTH_SHORT).show();
+
+                        Intent intent = new Intent(MainActivity.this, VerificationActivity.class);
+                        intent.putExtra("userEmail", dto.getEmail());
+                        startActivity(intent);
+
 
                     } else if (response.code() == 400) {
 

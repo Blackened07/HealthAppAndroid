@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.blackened.healthappfront.adapter.HealthRecordAdapterWithoutButtons;
 import com.blackened.healthappfront.healthRecord.HealthRecordResponseDTO;
+import com.blackened.healthappfront.utils.ExcelGenerator;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -28,7 +29,6 @@ public class ReportActivity extends BaseActivity{
     private Button btnToDate;
     private Button btnGenerateReport;
     private Button btnExportExcel;
-    private Button btnSendEmail;
 
     private Spinner spinnerMetricType;
     private RecyclerView recyclerView;
@@ -38,7 +38,8 @@ public class ReportActivity extends BaseActivity{
     private String fromDate;
     private String toDate;
     private static final String TITLE = "\uD83D\uDCCA Отчёт";
-
+    private Long currentUserId;
+    private String currentUserName;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -48,6 +49,9 @@ public class ReportActivity extends BaseActivity{
         setUpToolbar();
         setToolbarTitle(TITLE);
         enableBackButton();
+
+        currentUserId = getIntent().getLongExtra("targetId", -1);
+        currentUserName = getIntent().getStringExtra("targetName");
 
         initViews();
         setupRecyclerView();
@@ -60,7 +64,6 @@ public class ReportActivity extends BaseActivity{
         btnToDate = findViewById(R.id.btn_to_date);
         btnGenerateReport = findViewById(R.id.btn_generate);
         btnExportExcel = findViewById(R.id.btn_export_excel);
-        btnSendEmail = findViewById(R.id.btn_send_email);
         recyclerView = findViewById(R.id.rv_report);
         spinnerMetricType = findViewById(R.id.spinner_metric_type);
     }
@@ -91,7 +94,6 @@ public class ReportActivity extends BaseActivity{
         btnToDate.setOnClickListener(v -> showDatePicker(false));
         btnGenerateReport.setOnClickListener(v -> generateReport());
         btnExportExcel.setOnClickListener(v -> exportEcxel());
-        btnSendEmail.setOnClickListener(v -> exportEcxel());
     }
 
     private void showDatePicker(boolean isFromDate) {
@@ -138,7 +140,7 @@ public class ReportActivity extends BaseActivity{
                 spinnerMetricType.getSelectedItem().toString()
         ).name();
 
-        fetchReport(fromDate, toDate, selectedType, sessionManager.getUserId());
+        fetchReport(fromDate, toDate, selectedType, currentUserId);
 
     }
     @SuppressLint("DefaultLocale")
@@ -176,6 +178,12 @@ public class ReportActivity extends BaseActivity{
     }
 
     private void exportEcxel() {
-        Toast.makeText(this, "Будьте прокляты! Кнопка в разработке!!!", Toast.LENGTH_LONG).show();
+        if (currentRecords.isEmpty()) {
+            Toast.makeText(this, "Нет записей", Toast.LENGTH_LONG).show();
+        }
+        ExcelGenerator.createReport(getApplicationContext(), currentRecords, currentUserName);
+        ExcelGenerator.shareExcelFile(this, currentUserName);
+
+        Toast.makeText(this, "Файл успешно создан", Toast.LENGTH_LONG).show();
     }
 }
